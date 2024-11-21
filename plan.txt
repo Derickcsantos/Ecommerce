@@ -1,0 +1,28 @@
+/ecommerce
+  /server
+    /controllers
+      - productController.js
+      - orderController.js
+      - authController.js
+    /models
+      - Product.js
+      - Order.js
+      - User.js
+    /routes
+      - productRoutes.js
+      - orderRoutes.js
+      - userRoutes.js
+    - server.js
+  /admin
+    - index.html
+    - dashboard.html
+    - script.js
+    - styles.css
+  /client
+    - index.html
+    - catalog.html
+    - product.html
+    - cart.html
+    - checkout.html
+    - confirmation.html
+  .env
