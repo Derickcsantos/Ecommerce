@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Cadastro</h1>
+    <form id="registerForm">
+        <input type="text" id="name" placeholder="Nome" required>
+        <input type="email" id="email" placeholder="E-mail" required>
+        <input type="password" id="password" placeholder="Senha" required>
+        <button type="submit">Cadastrar</button>
+    </form>
+    <p id="loadingMessage" style="display:none;">Cadastrando...</p>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            try {
+                loadingMessage.style.display = 'block';
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password }),
+                });
+
+                const result = await response.json();
+                loadingMessage.style.display = 'none';
+
+                if (response.ok) {
+                    alert(result.message);
+                    // Armazena o usuário registrado no localStorage
+                    localStorage.setItem('loggedInUser', JSON.stringify({ name, email }));
+                    window.location.href = 'logado.html'; // Redireciona para a página logada
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                console.error('Erro no cadastro:', error);
+                alert('Erro ao tentar cadastrar.');
+            }
+        });
+    </script>
+</body>
+</html>

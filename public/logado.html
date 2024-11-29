@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logado</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Produtos</a></li>
+            <li><a href="#" id="concluirCompraButton">Concluir Compra</a></li>
+        </ul>
+    </nav>
+
+    <h1 id="welcomeMessage"></h1>
+    <h1>Produtos Disponíveis</h1>
+    <div id="searchBar">
+        <input type="text" id="searchQuery" placeholder="Pesquisar por Nome">
+        <select id="searchCategory">
+            <option value="">Geral</option>
+            <option value="esportivo">Esportivo</option>
+            <option value="tecnologia">Tecnologia</option>
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+        </select>
+        <button id="searchButton">Pesquisar</button>
+    </div>
+    <div id="product-list"></div>
+
+    <!-- Modal de Produto -->
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <img id="modalImage" src="" alt="Produto" style="width: 100%;">
+            <h3 id="modalName"></h3>
+            <p id="modalCategory"></p>
+            <p id="modalPrice"></p>
+            <p id="modalDescription"></p>
+            <button id="addToCart">Adicionar ao Carrinho</button>
+            <button id="addToWishlist">Favoritar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span id="closeCheckoutModal" class="close">&times;</span>
+            <h2>Resumo do Pedido</h2>
+            <div id="orderSummary"></div>
+            <form id="checkoutForm">
+                <label for="deliveryAddress">Endereço de Entrega:</label>
+                <textarea id="deliveryAddress" rows="3" required></textarea>
+                <button type="button" id="finalizePurchase">Finalizar Compra</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>

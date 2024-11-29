@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Administração de Produtos</title>
+  <style>
+    form, table { margin: 20px; }
+    input, select, button { margin: 5px; }
+    #usersTable th, #productsTable th { text-align: left; }
+    #usersTable td, #productsTable td { padding: 8px; }
+  </style>
+</head>
+<body>
+    <h1>Gerenciar Produtos</h1>
+    <form id="productForm">
+        <input type="text" id="name" placeholder="Nome do Produto" required>
+        <input type="text" id="productPrice" placeholder="Preço" required>
+        <textarea id="description" placeholder="Descrição" required></textarea>
+        <select id="category" required>
+            <option value="">Selecione uma Categoria</option>
+            <option value="esportivo">Esportivo</option>
+            <option value="tecnologia">Tecnologia</option>
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+        </select>
+        <input type="number" id="stock" placeholder="Estoque" required>
+        <input type="file" id="image" accept="image/*">
+        <button type="submit">Salvar Produto</button>
+    </form>
+
+    <h2>Lista de Produtos</h2>
+    <table id="productsTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Lista de Usuários</h2>
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Data de Cadastro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="editProductModal" style="display: none;">
+        <input type="text" id="editName" placeholder="Nome do produto">
+        <input type="text" id="editCategory" placeholder="Categoria">
+        <input type="text" id="editPrice" placeholder="Preço">
+        <button onclick="saveEditProduct()">Salvar</button>
+        <button onclick="closeEditModal()">Cancelar</button>
+    </div>
+
+  <script src="admin.js"></script>
+  <script>
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('price', document.getElementById('productPrice').value);
+        formData.append('description', document.getElementById('description').value);
+        formData.append('category', document.getElementById('category').value);
+        formData.append('stock', document.getElementById('stock').value);
+        formData.append('image', document.getElementById('image').files[0]);
+
+        const response = await fetch('/api/products', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (response.ok) {
+            alert('Produto salvo com sucesso!');
+            loadProducts();
+        } else {
+            alert('Erro ao salvar produto.');
+        }
+    });
+
+    async function loadProducts() {
+        const response = await fetch('/api/products');
+        const products = await response.json();
+  
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = ''; // Limpa a tabela antes de adicionar os dados
+  
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>R$${product.price}</td>
+                <td>${product.stock}</td>
+                <td>
+                    <button onclick="deleteProduct('${product._id}')">Excluir</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+  
+    async function deleteProduct(productId) {
+        if (confirm('Deseja realmente excluir este produto?')) {
+            const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+            if (response.ok) {
+                alert('Produto excluído com sucesso!');
+                loadProducts();
+            } else {
+                alert('Erro ao excluir produto.');
+            }
+        }
+    }
+
+    // Carregar os produtos ao carregar a página
+    loadProducts();
+
+    async function loadUsers() {
+        try {
+            const response = await fetch('/api/users'); // Verifique este endpoint no backend
+            if (response.ok) {
+                const users = await response.json();
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = ''; // Limpa a tabela antes de adicionar os dados
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button onclick="deleteUser('${user._id}')">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                console.error('Erro ao carregar usuários:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar usuários:', error);
+        }
+    }
+
+
+    async function deleteUser(userId) {
+        if (confirm('Deseja realmente excluir este usuário?')) {
+            try {
+                const response = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    alert('Usuário excluído com sucesso!');
+                    loadUsers();
+                } else {
+                    alert('Erro ao excluir usuário.');
+                }
+            } catch (error) {
+                alert('Erro ao excluir usuário.');
+            }
+        }
+    }
+
+    window.onload = function() {
+        loadProducts();
+        loadUsers();
+    };
+  </script>
+
+</body>
+</html>

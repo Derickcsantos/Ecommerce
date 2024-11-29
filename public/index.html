@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Visualizar Produtos</title>
+  <style>
+    #searchBar { margin: 20px; }
+    input, select, button { margin: 5px; }
+    .product { padding: 10px; margin: 10px; border: 1px solid #ccc; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Produtos Disponíveis</h1>
+  <div id="searchBar">
+    <input type="text" id="searchQuery" placeholder="Pesquisar por Nome">
+    <select id="searchCategory">
+      <option value="">Geral</option>
+      <option value="esportivo">Esportivo</option>
+      <option value="tecnologia">Tecnologia</option>
+      <option value="feminino">Feminino</option>
+      <option value="masculino">Masculino</option>
+    </select>
+    <button id="searchButton">Pesquisar</button>
+  </div>
+  <div id="product-list"></div>
+
+  <!-- Modal de Checkout -->
+  <div id="checkoutModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span id="closeCheckoutModal" class="close">&times;</span>
+      <h2>Resumo do Pedido</h2>
+      <div id="orderSummary"></div>
+      <form id="checkoutForm">
+        <label for="deliveryAddress">Endereço de Entrega:</label>
+        <textarea id="deliveryAddress" rows="3" required></textarea>
+        <button type="button" id="finalizePurchase">Finalizar Compra</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const isLoggedIn = localStorage.getItem('loggedInUser');
+      if (isLoggedIn) {
+        const userInfo = JSON.parse(isLoggedIn);
+        alert(`Bem-vindo, ${userInfo.email}`);
+      } else {
+        alert('Você não está logado. Faça login para comprar.');
+      }
+    });
+
+    document.getElementById('searchButton').addEventListener('click', async () => {
+      const query = document.getElementById('searchQuery').value;
+      const category = document.getElementById('searchCategory').value;
+
+      try {
+        const response = await fetch(`/api/products/search?query=${query}&category=${category}`);
+        if (!response.ok) throw new Error('Erro ao buscar produtos');
+
+        const products = await response.json();
+        renderProducts(products);
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao buscar produtos.');
+      }
+    });
+
+    function renderProducts(products) {
+      const productList = document.getElementById('product-list');
+      productList.innerHTML = ''; 
+
+      products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('product');
+        productDiv.innerHTML = `
+          <h3>${product.name}</h3>
+          <p>Categoria: ${product.category}</p>
+          <p>Preço: R$${product.price}</p>
+          <p>Descrição: ${product.description}</p>
+          <p>Estoque: ${product.stock}</p>
+          ${product.image ? `<img src="/uploads/${product.image}" alt="${product.name}" width="100">` : ''}
+          <button onclick="addToCart(${JSON.stringify(product)})">Adicionar ao Carrinho</button>
+        `;
+        productList.appendChild(productDiv);
+      });
+    }
+
+    const cart = []; 
+
+    function addToCart(product) {
+      const existingItem = cart.find(item => item.name === product.name);
+
+      if (existingItem) {
+        existingItem.quantity++;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+
+      alert('Produto adicionado ao carrinho!');
+    }
+
+    function openCheckoutModal() {
+      const modal = document.getElementById('checkoutModal');
+      const summary = document.getElementById('orderSummary');
+      summary.innerHTML = '';
+
+      if (cart.length === 0) {
+        summary.innerHTML = '<p>Seu carrinho está vazio.</p>';
+      } else {
+        cart.forEach((item, index) => {
+          const totalItem = (item.price * item.quantity).toFixed(2).replace('.', ',');
+          summary.innerHTML += `
+            <p><strong>${item.name}</strong></p>
+            <p>Quantidade: ${item.quantity}</p>
+            <p>Preço unitário: R$${item.price.toFixed(2).replace('.', ',')}</p>
+            <p>Preço total: R$${totalItem}</p>
+            <hr>
+          `;
+        });
+
+        const totalPrice = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        summary.innerHTML += `<h3>Total Geral: R$${totalPrice.toFixed(2).replace('.', ',')}</h3>`;
+      }
+
+      modal.style.display = 'block';
+    }
+
+    document.getElementById('closeCheckoutModal').addEventListener('click', () => {
+      document.getElementById('checkoutModal').style.display = 'none';
+    });
+
+    document.getElementById('finalizePurchase').addEventListener('click', () => {
+      const address = document.getElementById('deliveryAddress').value.trim();
+
+      if (address === '') {
+        alert('Por favor, preencha o endereço de entrega.');
+        return;
+      }
+
+      alert('Compra finalizada! Obrigado.');
+      window.location.href = 'https://link.mercadopago.com.br/deckcs';
+    });
+  </script>
+</body>
+</html>
